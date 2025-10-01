@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
     <!-- Vaadin project from https://github.com/vaadin/skeleton-starter-flow-spring -->
     <groupId>com.neotropic.flow.component</groupId>
-    <artifactId>olmap-flow-demo</artifactId>
+    <artifactId>olmap-for-vaadin-flow-demo</artifactId>
     <name>OpenLayers Component Demo for Vaadin Flow</name>
-    <version>24.6.2</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
 
     <properties>
