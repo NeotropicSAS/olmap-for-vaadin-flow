@@ -1,6 +1,7 @@
-/olmap-flow/target/
-/olmap-flow/src/main/frontend/generated/
-/olmap-flow-demo/target/
+/olmap-for-vaadin-flow/target/
+/olmap-for-vaadin-flow/frontend/generated/
+/olmap-for-vaadin-flow-demo/target/
+/olmap-for-vaadin-flow-demo/frontend/generated/
 
 .idea/
 .vscode/
