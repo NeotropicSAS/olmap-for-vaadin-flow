@@ -23,7 +23,7 @@ import { Feature, Map as olMap, View } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
-import { Circle, Geometry, GeometryCollection, LineString, Point, SimpleGeometry } from 'ol/geom';
+import { Geometry, LineString, Point, SimpleGeometry } from 'ol/geom';
 import { Modify, Draw, Interaction } from 'ol/interaction';
 import { Fill, Icon, Stroke, Style, Text, Circle as CircleStyle, RegularShape } from 'ol/style';
 import { FeatureLike } from 'ol/Feature';
@@ -359,20 +359,16 @@ export class OlMap extends LitElement {
         }
         if (feature.getGeometry()?.getType() === 'LineString') {
           const coordinates: number[][] = (feature.getGeometry() as SimpleGeometry).getCoordinates() as number[][];
-          const geometries: SimpleGeometry[] = [];
-
-          const radius = 5.5;
-          coordinates.forEach(c => {
-            geometries.push(new Circle(c, radius * (this.map.getView().getResolution() as number)))
-          });
-          styleFeature.setZIndex(1);
-          const styleGeometries = new Style({
-            geometry: new GeometryCollection(geometries),
+          const vertexStyles = coordinates.map(c => new Style({
+          geometry: new Point(c),
+          image: new CircleStyle({
+            radius: 5,
             fill: new Fill({ color: 'white' }),
-            stroke: new Stroke({ color: featurePropertyStyle.stroke.color }),
-            zIndex: 2
-          })
-          styles.push(styleGeometries);
+            stroke: new Stroke({ color: featurePropertyStyle.stroke.color, width: 2 })
+          }),
+          zIndex: 2
+        }));
+        styles.push(...vertexStyles);
           if (featurePropertyStyle.stroke) {
             styleFeature.setStroke(new Stroke({
               color: featurePropertyStyle.stroke.color,
@@ -418,12 +414,12 @@ export class OlMap extends LitElement {
             fill: new Fill({ color: color })
           }));
         } else if (feature.getGeometry()?.getType() === 'Point') {
-          feature.setStyle(new Style({
-            geometry: new Circle(
-              (feature.getGeometry() as SimpleGeometry).getCoordinates() as number[],
-              25 * (this.map.getView().getResolution() as number)),
-            stroke: new Stroke({ color: color, width: 7 }),
-            fill: new Fill({ color: color })
+           feature.setStyle(new Style({
+            image: new CircleStyle({
+              radius: 15, 
+              stroke: new Stroke({ color: color, width: 3 }),
+              fill: new Fill({ color: color })
+            })
           }));
         }
         this.highlightSource.addFeature(feature);
