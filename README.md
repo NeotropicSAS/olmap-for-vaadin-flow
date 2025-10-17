@@ -2,6 +2,10 @@
 
 Adaptation of `olmap` web component for the Vaadin Flow platform
 
+- [Open Layers – Official site](https://openlayers.org/)
+
+Open Layers version: `10.6.1`
+
 ## License
 
 Apache License 2.0
