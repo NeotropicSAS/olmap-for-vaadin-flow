@@ -37,7 +37,7 @@ import java.util.List;
  * @author Johny Andres Ortega Ruiz {@literal <johny.ortega@kuwaiba.org>}
  */
 @Tag("ol-map")
-@NpmPackage(value = "ol", version = "^6.14.1")
+@NpmPackage(value = "ol", version = "^10.6.1")
 @CssImport("ol/ol.css")
 @JsModule("./ol-map.ts")
 public class OlMap extends Component implements HasSize {

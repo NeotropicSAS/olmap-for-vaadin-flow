@@ -16,11 +16,10 @@
  */
 
 import { LitElement, html } from 'lit';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import OSM from 'ol/source/OSM';
 import TileLayer from 'ol/layer/Tile';
 import { Feature, Map as olMap, View } from 'ol';
-import { fromLonLat, toLonLat } from 'ol/proj';
 import { Coordinate } from 'ol/coordinate';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
@@ -34,7 +33,7 @@ import { getVectorContext } from 'ol/render';
 import { easeOut } from 'ol/easing';
 import { unByKey } from 'ol/Observable';
 import RenderEvent from 'ol/render/Event';
-import { FrameState } from 'ol/PluggableMap';
+import type { FrameState } from 'ol/Map';
 import { Pixel } from 'ol/pixel';
 import { altKeyOnly } from 'ol/events/condition';
 import { getLength } from 'ol/sphere';
@@ -115,12 +114,10 @@ export class OlMap extends LitElement {
   }
   set viewOptions(value: ViewOptionsProperty) {
     this._viewOptions = value;
-    if (value.center) {
-      this.view.setCenter(fromLonLat(value.center));
-    }
-    if (value.zoom) {
+    if (value.center) 
+      this.view.setCenter(value.center);
+    if (value.zoom) 
       this.view.setZoom(value.zoom);
-    }
   }
 
   private _tileLayerSource: TileLayerSourceObject = {};
@@ -154,7 +151,7 @@ export class OlMap extends LitElement {
     this.featuresSource = new VectorSource();
     this.featuresLayer = new VectorLayer();
     this.featuresLayer.setZIndex(2);
-    this.init();
+    //this.init();
   }
 
   addPoint(coordinates: Array<number>, id: string | number, text: string): FeatureObject {
@@ -290,7 +287,7 @@ export class OlMap extends LitElement {
        `;
   }
 
-  protected createRenderRoot(): Element | ShadowRoot {
+  protected createRenderRoot(): this {
     return this;
   }
 
@@ -303,7 +300,7 @@ export class OlMap extends LitElement {
     });
     this.featuresLayer.setSource(this.featuresSource);
     this.map.addLayer(this.featuresLayer);
-
+    
     const styleTextFunction = (feature: FeatureLike) => {
       const style = new Style();
       const padding = 3;
@@ -358,7 +355,7 @@ export class OlMap extends LitElement {
         const styleText = styleTextFunction(feature);
         styles.push(styleText);
         if (featurePropertyStyle.text && styleText.getText()) {
-          styleText.getText().setBackgroundFill(new Fill({ color: featurePropertyStyle.text.backgroundFill.color }));
+          styleText.getText()?.setBackgroundFill(new Fill({ color: featurePropertyStyle.text.backgroundFill.color }));
         }
         if (feature.getGeometry()?.getType() === 'LineString') {
           const coordinates: number[][] = (feature.getGeometry() as SimpleGeometry).getCoordinates() as number[][];
@@ -392,7 +389,7 @@ export class OlMap extends LitElement {
         detail: {
           view: {
             zoom: this.view.getZoom(),
-            center: toLonLat(this.view.getCenter() as Coordinate)
+            center: this.view.getCenter() as Coordinate
           }
         }
       }));
@@ -404,7 +401,7 @@ export class OlMap extends LitElement {
     this.map.on('pointermove', evt => {
       this.dispatchEvent(new CustomEvent('map-pointermove', {
         detail: {
-          coordinate: toLonLat(evt.coordinate)
+          coordinate: evt.coordinate
         }
       }));
       this.highlightSource.clear();
@@ -435,7 +432,7 @@ export class OlMap extends LitElement {
     this.map.on('singleclick', evt => {
       this.dispatchEvent(new CustomEvent('map-singleclick', {
         detail: {
-          coordinate: toLonLat(evt.coordinate)
+          coordinate: evt.coordinate
         }
       }));
       this.select(evt.pixel);
@@ -466,7 +463,7 @@ export class OlMap extends LitElement {
       } else {
         this.dispatchEvent(new CustomEvent('map-viewport-contextmenu', {
           detail: {
-            coordinate: toLonLat(this.map.getEventCoordinate(evt))
+            coordinate: this.map.getEventCoordinate(evt)
           }
         }));
       }
@@ -509,10 +506,6 @@ export class OlMap extends LitElement {
 
   getLength(featureObject: FeatureObject) {
     return getLength(this.getFeature(featureObject)?.getGeometry() as Geometry);
-  }
-
-  toLonLat(coordinate: number[]) {
-    return toLonLat(coordinate);
   }
 
   /**
@@ -587,11 +580,11 @@ export class OlMap extends LitElement {
     let coordinates = undefined;
     if (featureObject && featureObject.geometry && featureObject.geometry.type && featureObject.geometry.coordinates) {
       if (featureObject.geometry.type === 'Point')
-        coordinates = fromLonLat(featureObject.geometry.coordinates as number[]);
+        coordinates = featureObject.geometry.coordinates as number[];
       if (featureObject.geometry.type === 'LineString') {
         coordinates = [];
         (featureObject.geometry.coordinates as number[][]).forEach(coordinate => {
-          coordinates.push(fromLonLat(coordinate as number[]));
+          coordinates.push(coordinate as number[]);
         });
       }
     }
@@ -629,10 +622,10 @@ export class OlMap extends LitElement {
           const encodedFeature = geoJson.writeFeature(evt.feature);
           const feature = JSON.parse(encodedFeature);
           if (feature.geometry.type === 'Point') {
-            feature.geometry.coordinates = toLonLat(feature.geometry.coordinates);
+            feature.geometry.coordinates = feature.geometry.coordinates;
           } else if (feature.geometry.type === 'LineString') {
             const lonLatCoordinates: Array<Array<number>> = [];
-            (feature.geometry.coordinates as Array<Array<number>>).forEach(coordinates => lonLatCoordinates.push(toLonLat(coordinates)));
+            (feature.geometry.coordinates as Array<Array<number>>).forEach(coordinates => lonLatCoordinates.push(coordinates));
             feature.geometry.coordinates = lonLatCoordinates;
           }
           this.dispatchEvent(new CustomEvent('map-draw-draw-end', {
@@ -675,10 +668,10 @@ export class OlMap extends LitElement {
           const features: Array<any> = featureCollection.features;
           features.forEach(feature => {
             if (feature.geometry.type === 'Point')
-              feature.geometry.coordinates = toLonLat(feature.geometry.coordinates);
+              feature.geometry.coordinates = feature.geometry.coordinates;
             else if (feature.geometry.type === 'LineString') {
               const lonLatCoordinates: Array<Array<number>> = [];
-              (feature.geometry.coordinates as Array<Array<number>>).forEach(coordinates => lonLatCoordinates.push(toLonLat(coordinates)));
+              (feature.geometry.coordinates as Array<Array<number>>).forEach(coordinates => lonLatCoordinates.push(coordinates));
               feature.geometry.coordinates = lonLatCoordinates;
             }
           });
@@ -791,7 +784,7 @@ export class OlMap extends LitElement {
                 text = `${(length * unitOfLength.operand2).toFixed(unitOfLength.numberOfDigits)} ${unitOfLength.translated}`;
               }
             }
-            labelStyle.getText().setText(text);
+            labelStyle.getText()?.setText(text);
             styles.push(labelStyle);
           }
           return styles;
