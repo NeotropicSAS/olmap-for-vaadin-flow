@@ -37,6 +37,7 @@ import type { FrameState } from 'ol/Map';
 import { Pixel } from 'ol/pixel';
 import { altKeyOnly } from 'ol/events/condition';
 import { getLength } from 'ol/sphere';
+import { useGeographic } from 'ol/proj';
 
 interface ViewOptionsProperty {
   center?: number[];
@@ -151,6 +152,7 @@ export class OlMap extends LitElement {
     this.featuresSource = new VectorSource();
     this.featuresLayer = new VectorLayer();
     this.featuresLayer.setZIndex(2);
+    useGeographic();
     //this.init();
   }
 
