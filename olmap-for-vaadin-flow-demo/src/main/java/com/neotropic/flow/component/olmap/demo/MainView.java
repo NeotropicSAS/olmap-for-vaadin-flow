@@ -48,13 +48,10 @@ public class MainView extends Div {
         super.onAttach(attachEvent);
         // Coordinates where the map can be centered
         // These coordinates are defined in EPSG:4326 format (latitude, longitude), which is the standard geographic coordinate system used by GPS.
-        // They are converted to EPSG:3857 (Web Mercator projection) using the to3857()
-        // method so that OlMap (OpenLayers) can correctly interpret and display them.
-        // By default, OlMap expects coordinates in EPSG:3857.
-        coordinates.add(to3857(new Coordinate(4.570868, -74.297333)));  //Colombia
-        coordinates.add(to3857(new Coordinate(35.120833, 135.9075)));  //Japan
-        coordinates.add(to3857(new Coordinate(51.9189046, 19.1343786))); //Poland
-        coordinates.add(to3857(new Coordinate(55.9396761, 9.5155848))); //Iceland
+        coordinates.add(new Coordinate(-74.297333, 4.570868));  //Colombia
+        coordinates.add(new Coordinate(135.9075, 35.120833));  //Japan
+        coordinates.add(new Coordinate(19.1343786, 51.9189046)); //Poland
+        coordinates.add(new Coordinate(9.5155848, 55.9396761)); //Danmark
 
         //Set the center in (0,0) and the zoom (6.0)
         ViewOptions viewOptions = new ViewOptions(new Coordinate(0, 0), 6.0);
