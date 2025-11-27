@@ -152,6 +152,7 @@ export class OlMap extends LitElement {
     this.featuresSource = new VectorSource();
     this.featuresLayer = new VectorLayer();
     this.featuresLayer.setZIndex(2);
+
     useGeographic();
     //this.init();
   }
@@ -180,7 +181,7 @@ export class OlMap extends LitElement {
             backgroundFill: {
               color: 'gray'
             },
-            minZoom: 12
+            minZoom: 0
           }
         },
         selectedStyle: {
@@ -236,7 +237,7 @@ export class OlMap extends LitElement {
             backgroundFill: {
               color: 'gray'
             },
-            minZoom: 12
+            minZoom: 0
           },
           stroke: {
             color: 'red',
@@ -308,16 +309,23 @@ export class OlMap extends LitElement {
       const padding = 3;
       const offsetY = 10;
       const featurePropertyStyle = feature.get('style');
-      if (featurePropertyStyle && featurePropertyStyle.text && featurePropertyStyle.text.minZoom <= (this.map.getView().getZoom() as number)) {
+      
+      //if (featurePropertyStyle && featurePropertyStyle.text && featurePropertyStyle.text.minZoom <= (this.map.getView().getZoom() as number)) {
+      if (featurePropertyStyle && featurePropertyStyle.text) {
+          
         style.setText(new Text({
           font: featurePropertyStyle.text.font,
           text: featurePropertyStyle.text.text,
-          textBaseline: 'top',
-          textAlign: 'center',
+          //textBaseline: 'top',
+          textBaseline: featurePropertyStyle.text.textBaseline,
+          //textAlign: 'center',
+          textAlign: featurePropertyStyle.text.textAlign,
           fill: new Fill({ color: featurePropertyStyle.text.fill.color }),
-          backgroundFill: new Fill({ color: featurePropertyStyle.text.backgroundFill.color }),
+          backgroundFill: featurePropertyStyle.text.backgroundFill ? new Fill({ color: featurePropertyStyle.text.backgroundFill.color }) : undefined,
+          //backgroundFill: new Fill({ color: featurePropertyStyle.text.backgroundFill.color }),
           padding: [padding, padding, padding, padding],
-          offsetY: offsetY
+          offsetY: featurePropertyStyle.text.offsetY,
+          offsetX: featurePropertyStyle.text.offsetX
         }));
       }
       return style;
@@ -327,10 +335,37 @@ export class OlMap extends LitElement {
       const featurePropertyStyle = feature.get('style');
       if (featurePropertyStyle) {
         if (feature.getGeometry()?.getType() === 'Point') {
-          style.setImage(new Icon({
-            anchor: [0.5, 1],
-            src: featurePropertyStyle.image.icon.src,
-          }));
+          if (featurePropertyStyle.image && featurePropertyStyle.image.icon && featurePropertyStyle.image.icon.src) {
+            style.setImage(new Icon({
+              anchor: [0.5, 1],
+              src: featurePropertyStyle.image.icon.src,
+            }));
+          } else if (featurePropertyStyle.image && featurePropertyStyle.image.circle) {
+              style.setImage(new CircleStyle({
+                radius: featurePropertyStyle.image.circle.radius,
+                fill: new Fill({
+                  color: featurePropertyStyle.image.circle.fill?.color ?? 'gray',
+                }),
+                stroke: new Stroke({
+                    color: featurePropertyStyle.image.circle.stroke?.color ?? 'white',
+                    width: featurePropertyStyle.image.circle.stroke?.width ?? 1,
+                }),
+              }));
+          } else if (featurePropertyStyle.image && featurePropertyStyle.image.square) {
+              style.setImage(new RegularShape({
+                points: 4,
+                radius: featurePropertyStyle.image.square.size / 1.4142,
+                angle: Math.PI / 4,
+                fill: new Fill({
+                  color: featurePropertyStyle.image.square.fill?.color ?? 'gray',
+                }),
+                stroke: new Stroke({
+                    color: featurePropertyStyle.image.square.stroke?.color ?? 'white',
+                    width: featurePropertyStyle.image.square.stroke?.width ?? 1,
+                }),
+                displacement: [0, featurePropertyStyle.image.square.size / 2],
+              }));
+          }
         } else if (feature.getGeometry()?.getType() === 'LineString') {
           if (featurePropertyStyle.stroke) {
             style.setStroke(new Stroke({
@@ -396,18 +431,22 @@ export class OlMap extends LitElement {
     const highlightLayer = new VectorLayer({ source: this.highlightSource });
     highlightLayer.setZIndex(1);
     this.map.addLayer(highlightLayer);
+
+    // pointermove -> compute feature under pointer, set highlight property
     this.map.on('pointermove', evt => {
       this.dispatchEvent(new CustomEvent('map-pointermove', {
         detail: {
           coordinate: evt.coordinate
         }
       }));
+      // clear previous highlight features
       this.highlightSource.clear();
       if (this.pointermoveFeature !== null) {
         this.pointermoveFeature = null;
       }
       this.pointermoveFeature = this.getFeatureAtPixel(evt.pixel);
       if (this.pointermoveFeature) {
+        // clone geometry into a simple feature to show highlight in WebGL layer
         const feature = (this.pointermoveFeature as Feature).clone();
         const color = 'rgba(135,206,235, 0.75)';
         if (feature.getGeometry()?.getType() === 'LineString') {
@@ -427,6 +466,8 @@ export class OlMap extends LitElement {
         this.highlightSource.addFeature(feature);
       }
     });
+
+    // single click -> selection management
     this.map.on('singleclick', evt => {
       this.dispatchEvent(new CustomEvent('map-singleclick', {
         detail: {
@@ -443,6 +484,8 @@ export class OlMap extends LitElement {
         }));
       }
     });
+
+    // contextmenu (right-click)
     this.map.getViewport().addEventListener('contextmenu', evt => {
       evt.preventDefault();
       let selected: FeatureLike | null = null;
@@ -466,6 +509,7 @@ export class OlMap extends LitElement {
         }));
       }
     });
+
     this.view.on('change:resolution', () => this.dispatchEvent(new CustomEvent('view-change:resolution', {
       detail: {
         view: {
@@ -479,6 +523,7 @@ export class OlMap extends LitElement {
   getFeatureAtPixel(pixel: Pixel): FeatureLike | null {
     let featureAtPixel = null
     this.map.getFeaturesAtPixel(pixel, { hitTolerance: this.hitTolerance }).forEach(feature => {
+      // ignore features that are in highlightSource (the temporary highlight clones)
       if (!this.highlightSource.hasFeature(feature as Feature) && feature.getId() !== undefined) {
         featureAtPixel = feature;
       }
@@ -488,10 +533,12 @@ export class OlMap extends LitElement {
   }
 
   select(pixel: Pixel) {
+    // Unselect previous
     if (this.selectedFeature !== null) {
       (this.selectedFeature as Feature).setStyle(this.styleFunction);
       this.selectedFeature = null;
     }
+    // Select new
     this.selectedFeature = this.getFeatureAtPixel(pixel);
     if (this.selectedFeature) {
       (this.selectedFeature as Feature).setStyle(this.selectStyleFunction);
@@ -508,6 +555,7 @@ export class OlMap extends LitElement {
 
   /**
    * https://openlayers.org/en/latest/examples/feature-animation.html
+   * Animation kept using canvas vectorContext on postrender; it still works as an overlay.
    */
   animateFeature(featureObject: FeatureObject) {
     const feature = this.featuresSource.getFeatureById(featureObject.id);
@@ -569,8 +617,34 @@ export class OlMap extends LitElement {
       feature.setGeometry(geometry);
     }
     feature.setId(featureObject.id);
+    // set initial custom properties that webgl style uses
     feature.setProperties(featureObject.properties, true);
+    // ensure no leftover flags
+    feature.set('selected', false);
+    feature.set('isHighlight', false);
     this.featuresSource.addFeature(feature);
+    return true;
+  }
+  
+  addFeatures(featuresArray: FeatureObject[]): boolean {
+    const newFeatures: Feature[] = [];
+    for (const featureObject of featuresArray) {
+      const feature = new Feature();
+      const coordinates = this.getCoordinates(featureObject);
+      if (coordinates && featureObject.geometry?.type) {
+        let geometry: Geometry | undefined;
+        if (featureObject.geometry.type === 'Point')
+          geometry = new Point(coordinates as number[]);
+        if (featureObject.geometry.type === 'LineString')
+          geometry = new LineString(coordinates as number[][]);
+        feature.setGeometry(geometry);
+      }
+      feature.setId(featureObject.id);
+      feature.setProperties(featureObject.properties, true);
+      feature.set('selected', false);
+      newFeatures.push(feature);
+    }
+    this.featuresSource.addFeatures(newFeatures);
     return true;
   }
 
@@ -721,6 +795,7 @@ export class OlMap extends LitElement {
         this.map.removeInteraction(this.measuringDraw);
         this.measuringDraw = null;
       }
+      // For measuring sketch we keep a canvas vector style (temporary) using Style/Text
       const style = new Style({
         fill: new Fill({
           color: 'rgba(255, 255, 255, 0.2)'
@@ -791,6 +866,47 @@ export class OlMap extends LitElement {
       this.map.addInteraction(this.measuringDraw);
     }
   }
+  
+    getVisibleExtent(): number[] {
+      return this.view.calculateExtent(this.map.getSize());
+    }
+
+    getVisibleArea(): number {
+      const extent = this.getVisibleExtent();
+      const width = extent[2] - extent[0];
+      const height = extent[3] - extent[1];
+      return width * height; // metros cuadrados aprox.
+    }
+
+    getVisibleCoordinates(): { bottomLeft: Coordinate, topRight: Coordinate } {
+      const extent = this.getVisibleExtent();
+      return {
+        bottomLeft: extent.slice(0, 2) as Coordinate,
+        topRight: extent.slice(2, 4) as Coordinate
+      };
+    }
+    
+  /**
+   * Método expuesto para llamar desde Vaadin
+   */
+  getVisibleAreaInfo(): object {
+    const extent = this.getVisibleExtent();
+    const coords = this.getVisibleCoordinates();
+    return {
+      extent: extent,
+      bottomLeft: coords.bottomLeft,
+      topRight: coords.topRight
+    };
+  }
+    
+  disposeMap() {
+    if (this.map) {
+      this.map.setTarget(null);
+      this.map = null;
+    }
+  }
+ 
+  
 }
 
 declare global {

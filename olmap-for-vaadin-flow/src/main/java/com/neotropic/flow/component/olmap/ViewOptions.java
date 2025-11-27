@@ -55,8 +55,10 @@ public class ViewOptions implements OlMapTypeLiteral<ViewOptionType> {
 
     public void setCenter(Coordinate center) {
         this.center = center;
-        if (map != null)
-            map.getElement().setPropertyJson(OlMap.Property.VIEW_OPTIONS.getProperty(), toJsonValue(ViewOptionType.CENTER));
+        if (map != null) {
+            //map.getElement().setPropertyJson(OlMap.Property.VIEW_OPTIONS.getProperty(), toJsonValue(ViewOptionType.CENTER));
+            map.onViewOptionsUpdated();
+        }
     }
 
     public double getZoom() {
@@ -65,8 +67,10 @@ public class ViewOptions implements OlMapTypeLiteral<ViewOptionType> {
 
     public void setZoom(double zoom) {
         this.zoom = zoom;
-        if (map != null)
-            map.getElement().setPropertyJson(OlMap.Property.VIEW_OPTIONS.getProperty(), toJsonValue(ViewOptionType.ZOOM));
+        if (map != null) {
+            //map.getElement().setPropertyJson(OlMap.Property.VIEW_OPTIONS.getProperty(), toJsonValue(ViewOptionType.ZOOM));
+            map.onViewOptionsUpdated();
+        }
     }
     
     public OlMap getMap() {
