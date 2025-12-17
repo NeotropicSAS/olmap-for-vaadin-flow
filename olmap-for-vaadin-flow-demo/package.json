@@ -29,7 +29,7 @@
     "@types/react-dom": "18.3.5",
     "@vitejs/plugin-react": "4.3.4",
     "async": "3.2.6",
-    "glob": "10.5.0",
+    "glob": "10.4.5",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "5.13.1",
     "strip-css-comments": "5.0.0",
@@ -82,7 +82,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "0f86e64b9439a9272aac2b7511472b0e014b05e34b233fcaa65640408bd95fa8"
+    "hash": "a218641122f58afba8792e0a049d88df6efa357a2efdd265b38e9ef10b88b9b2"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
