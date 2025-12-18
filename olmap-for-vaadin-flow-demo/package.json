@@ -15,7 +15,7 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.2.1",
-    "ol": "^6.14.1",
+    "ol": "^10.6.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.28.0"
@@ -56,7 +56,7 @@
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
       "lit": "3.2.1",
-      "ol": "^6.14.1",
+      "ol": "^10.6.1",
       "react": "18.3.1",
       "react-dom": "18.3.1",
       "react-router-dom": "6.28.0"
@@ -82,7 +82,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "ad460303fbfe6e8d6b8b0fc5a9999c27bd3bd225cfe72a0c901cb37d0a475009"
+    "hash": "a218641122f58afba8792e0a049d88df6efa357a2efdd265b38e9ef10b88b9b2"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
