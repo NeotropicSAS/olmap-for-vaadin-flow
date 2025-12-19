@@ -124,9 +124,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.neotropic.flow.component</groupId>
+            <groupId>org.vaadin.addons.olmap</groupId>
             <artifactId>olmap-for-vaadin-flow</artifactId>
-            <version>${project.version}</version>
+            <version>1.0.0</version> 
         </dependency>
     </dependencies>
 
