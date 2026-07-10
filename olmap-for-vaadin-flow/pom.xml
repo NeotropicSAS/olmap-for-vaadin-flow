@@ -5,7 +5,7 @@
 
     <groupId>com.neotropic.flow.component</groupId>
     <artifactId>olmap-for-vaadin-flow</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0-alpha</version>
     <name>OpenLayers Component for Vaadin Flow</name>
     <description>Provides a wrapper for the most basic functionaities of Open Layers 6 library</description>
 
