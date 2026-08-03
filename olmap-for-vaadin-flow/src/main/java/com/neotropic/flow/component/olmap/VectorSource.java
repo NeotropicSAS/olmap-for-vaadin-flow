@@ -16,6 +16,9 @@
 package com.neotropic.flow.component.olmap;
 
 import com.vaadin.flow.component.page.PendingJavaScriptResult;
+import elemental.json.Json;
+import elemental.json.JsonArray;
+import elemental.json.JsonObject;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +40,19 @@ public class VectorSource {
         features.put(feature.getId(), feature);
         return map.getElement().callJsFunction("addFeature", feature.toJsonValue());
     }
+    
+    
+    public PendingJavaScriptResult addFeatures(List<Feature> featuresToAdd) {
+        JsonArray array = Json.createArray();
+        int index = 0;
+        for(Feature feature: featuresToAdd) {
+            features.put(feature.getId(), feature);
+            JsonObject featureJson = feature.toJsonValue();
+            array.set(index, featureJson);
+            index++;
+        }
+        return map.getElement().callJsFunction("addFeatures", array);
+    }
 
     public void updateFeature(Feature feature) {
         map.getElement().callJsFunction("updateFeature", feature.toJsonValue());
@@ -45,6 +61,11 @@ public class VectorSource {
     public void removeFeature(Feature feature) {
         features.remove(feature.getId());
         map.getElement().callJsFunction("removeFeature", feature.toJsonValue());
+    }
+    
+    public void removeAllFeatures() {
+        features.clear();
+        map.getElement().callJsFunction("clearFeatures");
     }
 
     public void animateFeature(Feature feature) {

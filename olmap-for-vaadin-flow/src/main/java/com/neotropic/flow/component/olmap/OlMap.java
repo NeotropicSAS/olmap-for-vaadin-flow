@@ -28,6 +28,7 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.shared.Registration;
 import elemental.json.JsonArray;
+import elemental.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +72,7 @@ public class OlMap extends Component implements HasSize {
         this.tileLayerSource = tileLayerSource;
         setSizeFull();
         addLoadCompleteListener(e -> {
-             getElement().setPropertyJson(Property.VIEW_OPTIONS.getProperty(), this.viewOptions.toJsonValue());
+            getElement().setPropertyJson(Property.VIEW_OPTIONS.getProperty(), this.viewOptions.toJsonValue());
             if (this.tileLayerSource != null)
                 getElement().setPropertyJson(Property.TILE_LAYER_SOURCE.getProperty(), this.tileLayerSource.toJsonValue());
             this.viewOptions.setMap(this);
@@ -206,4 +207,37 @@ public class OlMap extends Component implements HasSize {
             return coordinate;
         }
     }
+    
+    public void requestVisibleAreaAsync(java.util.function.Consumer<JsonObject> callback) {
+        getElement().callJsFunction("getVisibleAreaInfo").then(json -> {
+            if (json instanceof JsonObject) {
+                JsonObject info = (JsonObject) json;
+                callback.accept((JsonObject) json);
+            }
+        });
+    }
+    
+    public void onViewOptionsUpdated() {
+        if (viewOptions != null) {
+            getElement().setPropertyJson(Property.VIEW_OPTIONS.getProperty(), viewOptions.toJsonValue());
+        }
+    }
+    
+    
+    public void addFeatures(JsonArray features) {
+        getElement().callJsFunction("addFeatures", features);
+    }
+
+    public void clearFeatures() {
+        getElement().callJsFunction("clearFeatures");
+    }
+    
+    public void dispose() {
+        getElement().callJsFunction("disposeMap");
+    }
+
+
+
+
+ 
 }
